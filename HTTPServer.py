@@ -40,6 +40,7 @@ class HttpServer(SocketServer.BaseRequestHandler):
             while data[-2:] != "\n\n":
               data += self.request.recv(1024)
             logger.info(data)
+            data = data[:-4]
             command = data.split(" ")[0].strip()
             if command != 'GET' and command != 'HEAD':
                 self.request.send("501 Not Implemented")
@@ -47,7 +48,7 @@ class HttpServer(SocketServer.BaseRequestHandler):
                 continue
             request = data.split("/")[3].strip()
             if request != 'names' and request != 'sort':
-                self.request.send("401 Unauthorized")
+                self.request.send("404 Not Found")
                 data = ""
                 continue
             if request == 'names':
@@ -66,19 +67,27 @@ class HttpServer(SocketServer.BaseRequestHandler):
               self.request.send("ERROR {}\n\n".format(e))
 
       def getNames(self, data):
-          #parse the GET line
           self.request.send(html_body)
+          
 
       def headNames(self, data):
 
+
       def getSort(self, data):
           numOfNumbers = len(data.split("/"))
-
+          if numOfNumbers < 4:
+               self.request.send("404 Not Found")
+               return 
+          for i in (4,numOfNumbers):
+               if data.split("/")[i].isDigit == False or  data.split("/")[i] < 0:
+                 self.request.send("404 Not Found")
+                 return
+          self.request.send(data.split("/").sort(key=float))
 
       def headSort(self, data):
           #parse the HEAD line
 
-
+           
  
 
                 

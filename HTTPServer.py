@@ -17,7 +17,7 @@ html_body = """<!DOCTYPE html>
 </html>"""
 
 HOST = ' '
-PORT = 80
+PORT = 8080
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -67,6 +67,8 @@ class HttpServer(SocketServer.BaseRequestHandler):
               self.request.send("ERROR {}\n\n".format(e))
 
       def getNames(self, data):
+          response = "Content-Type = text/html \n Content-Length = "
+          sys.getsizeof(string sending)
           self.request.send(html_body)
           
 

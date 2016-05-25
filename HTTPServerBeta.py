@@ -1,22 +1,13 @@
-# Http Server
+# stupid server
 
 import socket
-import SocketServer
-import sys
 import logging
+import sys
+import threading
+import SocketServer
+import random
 
-html_body = """<!DOCTYPE html>
-<html>
-<head>
- <title>names</title>
-</head>
-<body>
- <p>Lauren Dumapias, 7219199</p>
- <p>Vivek Patel, 7538499</p>
-</body>
-</html>"""
-
-HOST = ' '
+HOST = ''
 PORT = 8080
 
 logger = logging.getLogger(__name__)
@@ -25,31 +16,26 @@ logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 # create formatter
-formatter = logging.Formatter(
-    "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 # add formatter to ch
 ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
 
-
-class HTTPServer(SocketServer.BaseRequestHandler):
-
+class HttpServer(SocketServer.BaseRequestHandler):
     def handle(self):
         while True:
             try:
                 print "handling"
                 data = self.request.recv(1024)
-                while data[-2:] != "\n\n":
-                    data += self.request.recv(1024)
-                logger.info(data)
-                data = data[:-4]
-                command = data.split(" ")[0].strip()
+                data = data.split('\n')[0]
+                command = (data.split())[0]
+                requestBlock = data.split()[1]
                 if command != 'GET' and command != 'HEAD':
                     self.request.send("501 Not Implemented")
                     data = ""
                     continue
-                request = data.split("/")[3].strip()
+                request = requestBlock.split('/')[0].strip()
                 if request != 'names' and request != 'sort':
                     self.request.send("404 Not Found")
                     data = ""
@@ -61,7 +47,8 @@ class HTTPServer(SocketServer.BaseRequestHandler):
                         self.headNames(data)
                 if request == 'sort':
                     if command == 'GET':
-                        self.getSort(data)
+                        print daemon_threads
+                        self.getSort(requestBlock)
                     if command == 'HEAD':
                         self.headSort(data)
                 data = ""
@@ -69,23 +56,18 @@ class HTTPServer(SocketServer.BaseRequestHandler):
                 logger.exception(e)
                 self.request.send("ERROR {}\n\n".format(e))
 
-    def getNames(self, data):
-        response = "Content-Type = text/html \n Content-Length = "
-        sys.getsizeof(string)
-        self.request.send(html_body)
-
-    def headNames(self, data):
+        def headNames(self, data):
+            return
 
         def getSort(self, data):
-            numOfNumbers = len(data.split("/"))
-            if numOfNumbers < 4:
+            numOfNumbers = len(data.split('/')[1:])
+            if numOfNumbers <= 0:
                 self.request.send("404 Not Found")
                 return
-            for i in (4, numOfNumbers):
-                if data.split("/")[i].isDigit == False or data.split("/")[i] < 0:
-                    self.request.send("404 Not Found")
-                    return
-            self.request.send(data.split("/").sort(key=float))
+            numList = data.split('/')[1:]
+            numList = [int(x) for x in numList]
+            numList.sort()
+            self.request.send("HTTP/1.0 200 OK" + "Content-Type: text/plain" + data + html_body)
 
         def headSort(self, data):
 
@@ -94,16 +76,14 @@ class HTTPServer(SocketServer.BaseRequestHandler):
 
             # Code From Chris Coakley stupid_server.py
 
-
-class ThreadedHTTPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class ThreadedStupidServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     # Ctrl-C will cleanly kill all spawned threads
     daemon_threads = True
     # much faster rebinding
     allow_reuse_address = True
 
-
 if __name__ == '__main__':
-    server = ThreadedHTTPServer((HOST, PORT), HTTPServer)
+    server = ThreadedStupidServer((HOST, PORT), HttpServer)
     # terminate with Ctrl-C
     try:
         server.serve_forever()
